@@ -26,10 +26,10 @@ class Transform: Hashable {
 
 class VRMSpringBone {
     public let comment: String = ""
-    public let stiffnessForce: SCNFloat = 1.0
-    public let gravityPower: SCNFloat = 0.0
-    public let gravityDir: SCNVector3 = .init(0, -1, 0)
-    public let dragForce: SCNFloat = 0.4
+    public var stiffnessForce: SCNFloat = 1.0
+    public var gravityPower: SCNFloat = 0.0
+    public var gravityDir: SCNVector3 = .init(0, -1, 0)
+    public var dragForce: SCNFloat = 0.4
     public var center: Transform! = nil
     public var rootBones: [Transform] = []
     var initialLocalRotationMap: [Transform : SCNQuaternion] = [:]
@@ -40,12 +40,12 @@ class VRMSpringBone {
         private let transform: Transform
         public var head: Transform { transform }
         public var tail: SCNVector3 { transform.localToWorldMatrix.multiplyPoint(boneAxis * length) }
-        var length: SCNFloat!
+        let length: SCNFloat
         var currentTail: SCNVector3!
         var prevTail: SCNVector3!
-        public var localRotation: SCNQuaternion!
-        public var boneAxis: SCNVector3!
-        public var radius: SCNFloat!
+        public let localRotation: SCNQuaternion!
+        public let boneAxis: SCNVector3!
+        public var radius: SCNFloat = 0.5
         
         init(center: Transform?, transform: Transform, localChildPosition: SCNVector3) {
             self.transform = transform
@@ -210,6 +210,7 @@ class Time {
         }
         let deltaTime: TimeInterval = time - lastUpdateTime
         self.deltaTime = deltaTime
+        self.lastUpdateTime = time
     }
     private(set) var deltaTime: TimeInterval = 0
 }
@@ -268,9 +269,8 @@ extension Transform {
     // https://github.com/google-ar/arcore-android-sdk/issues/570
     // http://edom18.hateblo.jp/entry/2018/04/26/214315
     func inverseTransformPoint(_ point: SCNVector3) -> SCNVector3 {
-        let m: SCNMatrix4 = transform.worldToLocalMatrix
-        let r: SCNVector3 = m.multiplyPoint(point)
-        return r
+        worldToLocalMatrix.multiplyPoint(point)
+//        transformPoint(point).inverted()
     }
     
     var localRotation: SCNQuaternion {

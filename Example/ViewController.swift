@@ -21,8 +21,8 @@ class ViewController: UIViewController {
             scnView.backgroundColor = UIColor.black
         }
     }
-    let springBone: VRMSpringBone = VRMSpringBone()
-
+    
+    var bs: [VRMSpringBone] = []
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -38,15 +38,28 @@ class ViewController: UIViewController {
 //            node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
 //            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
             
-            springBone.rootBones = [Transform(node.childNode(withName: "hair1_R", recursively: true)!), Transform(node.childNode(withName: "hair1_L", recursively: true)!)]
-            springBone.center = Transform(node)
-            springBone.awake()
+            var nodes: [SCNNode] = []
+            for boneGroup in node.vrm.secondaryAnimation.boneGroups {
+                
+                let springBone: VRMSpringBone = VRMSpringBone()
+                for index in boneGroup.bones {
+                    let node = try! loader.node(withNodeIndex: index)
+                    nodes.append(node)
+                }
+                springBone.rootBones = nodes.map(Transform.init)
+                //boneGroup.center-1は無指定でroot選ぶ
+                springBone.center = Transform(try! loader.node(withNodeIndex: boneGroup.bones[0]))
+                springBone.dragForce = SCNFloat(boneGroup.dragForce)
+                springBone.gravityDir = SCNVector3(boneGroup.gravityDir.x, boneGroup.gravityDir.y, boneGroup.gravityDir.z)
+                springBone.gravityPower = SCNFloat(boneGroup.gravityPower)
+                springBone.stiffnessForce = SCNFloat(boneGroup.stiffiness)
+                springBone.awake()
+                bs.append(springBone)
+            }
             
             node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-//                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
-//                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
-                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * 0.5), z: 0, duration: 1.0),
-                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * -0.5), z: 0, duration: 1.0)
+                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
+                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
             ])))
         } catch {
             print(error)
@@ -82,6 +95,8 @@ class ViewController: UIViewController {
 extension ViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         Time.shared.update(at: time)
-        springBone.lateUpdate()
+        print(Time.shared.deltaTime)
+        bs.forEach({ $0.lateUpdate() })
+//        print(bs.first?.center.node.worldPosition)
     }
 }
