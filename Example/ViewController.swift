@@ -21,6 +21,7 @@ class ViewController: UIViewController {
             scnView.backgroundColor = UIColor.black
         }
     }
+    let springBone: VRMSpringBone = VRMSpringBone()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,12 +31,23 @@ class ViewController: UIViewController {
             let scene = try loader.loadScene()
             setupScene(scene)
             scnView.scene = scene
-
+            scnView.delegate = self
             let node = scene.vrmNode
-            node.setBlendShape(value: 1.0, for: .custom("><"))
-            node.humanoid.node(for: .neck)?.eulerAngles = SCNVector3(0, 0, 20 * CGFloat.pi / 180)
-            node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
-            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+//            node.setBlendShape(value: 1.0, for: .custom("><"))
+//            node.humanoid.node(for: .neck)?.eulerAngles = SCNVector3(0, 0, 20 * CGFloat.pi / 180)
+//            node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+//            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+            
+            springBone.rootBones = [Transform(node.childNode(withName: "hair1_R", recursively: true)!), Transform(node.childNode(withName: "hair1_L", recursively: true)!)]
+            springBone.center = Transform(node)
+            springBone.awake()
+            
+//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
+////                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
+////                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
+//                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * 0.5), z: 0, duration: 1.0),
+//                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * -0.5), z: 0, duration: 1.0)
+//            ])))
         } catch {
             print(error)
         }
@@ -67,3 +79,9 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: SCNSceneRendererDelegate {
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        Time.shared.update(at: time)
+        springBone.lateUpdate()
+    }
+}
