@@ -43,7 +43,6 @@ class VRMSpringBone {
         var length: SCNFloat!
         var currentTail: SCNVector3!
         var prevTail: SCNVector3!
-        var localDir: SCNVector3!
         public var localRotation: SCNQuaternion!
         public var boneAxis: SCNVector3!
         public var radius: SCNFloat!
@@ -253,12 +252,12 @@ extension Transform {
     // http://light11.hatenadiary.com/entry/2019/03/09/182229
     // https://github.com/n-yoda/unity-transform/blob/master/Assets/TransformMatrix/TransformMatrix.cs
     var localToWorldMatrix: SCNMatrix4 {
-        node.worldTransform
+        Transform.localToParent(transform: parent!) * Transform.localToParent(transform: self)
     }
     
     //https://github.com/michidk/BrokenEngine/blob/master/BrokenEngine/GameObject.cs#L99
     var worldToLocalMatrix: SCNMatrix4 {
-        node.transform
+        localToWorldMatrix.inverted()
     }
     
     //http://edom18.hateblo.jp/entry/2018/04/26/214315
@@ -316,5 +315,83 @@ extension Transform {
     
     var children: [Transform] {
         node.childNodes.map(Transform.init)
+    }
+    
+    var localScale: SCNVector3 {
+        node.scale
+    }
+    
+    var localEulerAngles: SCNVector3 {
+        node.eulerAngles
+    }
+}
+
+
+
+
+
+extension Transform {
+    static func localToParent(transform: Transform) -> SCNMatrix4 {
+        trs(trans: transform.localPosition, euler: transform.localEulerAngles, scale: transform.localScale)
+    }
+    
+    static func trs(trans: SCNVector3, euler: SCNVector3, scale: SCNVector3) -> SCNMatrix4 {
+        translate(vec: trans) * rotate(euler: euler) * self.scale(scale: scale)
+    }
+
+    static func rotate(euler: SCNVector3) -> SCNMatrix4 {
+        func x(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m22 = cos
+            mat.m23 = -sin
+            mat.m32 = sin
+            mat.m33 = cos
+            return mat
+        }
+        func y(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m33 = cos
+            mat.m31 = -sin
+            mat.m13 = sin
+            mat.m11 = cos
+            return mat
+        }
+        func z(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m11 = cos
+            mat.m12 = -sin
+            mat.m21 = sin
+            mat.m22 = cos
+            return mat
+        }
+        return y(euler.y) * x(euler.x) * z(euler.z)
+    }
+    
+    static func scale(scale: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4.identity.scaled(scale)
+    }
+    
+    static func translate(vec: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4.identity.translated(vec)
+    }
+}
+
+extension Float {
+    // https://docs.unity3d.com/ja/current/ScriptReference/Mathf.Deg2Rad.html
+    static var deg2rad: Float {
+        (.pi * 2.0) / 360.0
+    }
+    
+    static var rad2deg: Float {
+        360.0 / (.pi * 2.0)
     }
 }

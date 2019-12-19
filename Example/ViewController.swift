@@ -42,12 +42,12 @@ class ViewController: UIViewController {
             springBone.center = Transform(node)
             springBone.awake()
             
-//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-////                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
-////                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
-//                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * 0.5), z: 0, duration: 1.0),
-//                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * -0.5), z: 0, duration: 1.0)
-//            ])))
+            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
+//                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
+//                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
+                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * 0.5), z: 0, duration: 1.0),
+                SCNAction.rotateTo(x: 0, y: CGFloat(Float.pi * -0.5), z: 0, duration: 1.0)
+            ])))
         } catch {
             print(error)
         }
