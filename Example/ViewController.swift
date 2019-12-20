@@ -42,8 +42,9 @@ class ViewController: UIViewController {
 //            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
             
             var nodes: [SCNNode] = []
+            
+            
             for boneGroup in node.vrm.secondaryAnimation.boneGroups {
-                
                 let springBone: VRMSpringBone = VRMSpringBone()
                 for index in boneGroup.bones {
                     let node = try! loader.node(withNodeIndex: index)
@@ -56,14 +57,35 @@ class ViewController: UIViewController {
                 springBone.gravityDir = SCNVector3(boneGroup.gravityDir.x, boneGroup.gravityDir.y, boneGroup.gravityDir.z)
                 springBone.gravityPower = SCNFloat(boneGroup.gravityPower)
                 springBone.stiffnessForce = SCNFloat(boneGroup.stiffiness)
+                springBone.colliderGroups = boneGroup.colliderGroups.map({ try! loader.node(withNodeIndex: $0) }).map({ VRMSpringBoneColliderGroup(transform: $0) })
+                for i in boneGroup.colliderGroups {
+                    print(node.vrm.secondaryAnimation.colliderGroups[i].node)
+                    print(node.vrm.secondaryAnimation.colliderGroups[i].colliders.first?.offset)
+                    print(node.vrm.secondaryAnimation.colliderGroups[i].colliders.first?.radius)
+                }
+                
                 springBone.awake()
                 gkScene.addEntity(springBone)
             }
             
+//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
+//                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
+//                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
+//            ])))
+
+//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
+//                SCNAction.rotateBy(x: 0, y: -0.5, z: 0, duration: 1.0),
+//                SCNAction.rotateBy(x: 0, y: 0.5, z: 0, duration: 1.0),
+//            ])))
+
             node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
-                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
+                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 0.5),
+                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 0.5),
+                SCNAction.rotateBy(x: 0, y: -0.5, z: 0, duration: 0.5),
+                SCNAction.rotateBy(x: 0, y: 0.5, z: 0, duration: 0.5),
             ])))
+
+            
         } catch {
             print(error)
         }

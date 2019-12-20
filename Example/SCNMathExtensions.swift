@@ -469,3 +469,121 @@ extension SCNMatrix4 : Equatable
         return SCNMatrix4EqualToMatrix4(a, b)
     }
 }
+
+
+
+extension SCNMatrix4 {
+    /// https://gist.github.com/justinmeiners/6568753eb12714390c2a010cee48e0cf
+    func multiplyPoint(_ v: SCNVector3) -> SCNVector3 {
+        var vector3: SCNVector3 = SCNVector3(
+            (m11 *  v.x +  m12 *  v.y +  m13 *  v.z) + m14,
+            (m21 *  v.x +  m22 *  v.y +  m23 *  v.z) + m24,
+            (m31 *  v.x +  m32 *  v.y +  m33 *  v.z) + m34
+        )
+        let num: Float = 1.0 / ( ( m41 *  v.x +  m42 *  v.y +  m43 *  v.z) + m44)
+        vector3.x *= num
+        vector3.y *= num
+        vector3.z *= num
+        return vector3
+    }
+}
+
+extension SCNNode {
+    
+    // http://light11.hatenadiary.com/entry/2019/03/09/182229
+    // https://github.com/n-yoda/unity-transform/blob/master/Assets/TransformMatrix/TransformMatrix.cs
+    var localToWorldMatrix: SCNMatrix4 {
+        SCNNode.localToParent(transform: parent!) * SCNNode.localToParent(transform: self)
+    }
+    
+    //https://github.com/michidk/BrokenEngine/blob/master/BrokenEngine/GameObject.cs#L99
+    var worldToLocalMatrix: SCNMatrix4 {
+        localToWorldMatrix.inverted()
+    }
+    
+    //http://edom18.hateblo.jp/entry/2018/04/26/214315
+    func transformPoint(_ point: SCNVector3) -> SCNVector3 {
+        localToWorldMatrix.multiplyPoint(point)
+    }
+    
+    // https://github.com/google-ar/arcore-android-sdk/issues/570
+    // http://edom18.hateblo.jp/entry/2018/04/26/214315
+    func inverseTransformPoint(_ point: SCNVector3) -> SCNVector3 {
+        worldToLocalMatrix.multiplyPoint(point)
+//        transformPoint(point).inverted()
+    }
+    
+    var traverse: [SCNNode] {
+        childNodes
+    }
+}
+
+
+
+
+
+extension SCNNode {
+    static func localToParent(transform: SCNNode) -> SCNMatrix4 {
+        trs(trans: transform.position, euler: transform.eulerAngles, scale: transform.scale)
+    }
+    
+    static func trs(trans: SCNVector3, euler: SCNVector3, scale: SCNVector3) -> SCNMatrix4 {
+        translate(vec: trans) * rotate(euler: euler) * self.scale(scale: scale)
+    }
+
+    static func rotate(euler: SCNVector3) -> SCNMatrix4 {
+        func x(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m22 = cos
+            mat.m23 = -sin
+            mat.m32 = sin
+            mat.m33 = cos
+            return mat
+        }
+        func y(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m33 = cos
+            mat.m31 = -sin
+            mat.m13 = sin
+            mat.m11 = cos
+            return mat
+        }
+        func z(_ deg: Float) -> SCNMatrix4 {
+            let rad = deg * Float.deg2rad
+            let sin = sinf(rad)
+            let cos = cosf(rad)
+            var mat = SCNMatrix4.identity
+            mat.m11 = cos
+            mat.m12 = -sin
+            mat.m21 = sin
+            mat.m22 = cos
+            return mat
+        }
+        return y(euler.y) * x(euler.x) * z(euler.z)
+    }
+    
+    static func scale(scale: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4.identity.scaled(scale)
+    }
+    
+    static func translate(vec: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4.identity.translated(vec)
+    }
+}
+
+extension Float {
+    // https://docs.unity3d.com/ja/current/ScriptReference/Mathf.Deg2Rad.html
+    static var deg2rad: Float {
+        (.pi * 2.0) / 360.0
+    }
+    
+    static var rad2deg: Float {
+        360.0 / (.pi * 2.0)
+    }
+}
