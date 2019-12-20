@@ -9,39 +9,21 @@
 import SceneKit
 import GameKit
 
-typealias Transform = SCNNode
-//
-//class Transform: Hashable {
-//    let node: SCNNode
-//
-//    init(_ node: SCNNode) {
-//        self.node = node
-//    }
-//
-//    static func == (lhs: Transform, rhs: Transform) -> Bool {
-//        lhs.hashValue == rhs.hashValue
-//    }
-//
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(node)
-//    }
-//}
-
 class VRMSpringBone: GKEntity {
     public let comment: String = ""
     public var stiffnessForce: SCNFloat = 1.0
     public var gravityPower: SCNFloat = 0.0
     public var gravityDir: SCNVector3 = .init(0, -1, 0)
     public var dragForce: SCNFloat = 0.4
-    public var center: Transform! = nil
-    public var rootBones: [Transform] = []
-    var initialLocalRotationMap: [Transform : SCNQuaternion] = [:]
+    public var center: SCNNode! = nil
+    public var rootBones: [SCNNode] = []
+    var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
     public let hitRadius: SCNFloat = 0.02
     public let colliderGroups: [VRMSpringBoneColliderGroup] = []
     
     class VRMSpringBoneLogic {
-        private let transform: Transform
-        public var head: Transform { transform }
+        private let transform: SCNNode
+        public var head: SCNNode { transform }
         public var tail: SCNVector3 { transform.localToWorldMatrix.multiplyPoint(boneAxis * length) }
         let length: SCNFloat
         var currentTail: SCNVector3!
@@ -50,7 +32,7 @@ class VRMSpringBone: GKEntity {
         public let boneAxis: SCNVector3!
         public var radius: SCNFloat = 0.5
         
-        init(center: Transform?, transform: Transform, localChildPosition: SCNVector3) {
+        init(center: SCNNode?, transform: SCNNode, localChildPosition: SCNVector3) {
             self.transform = transform
             let worldChildPosition = transform.transformPoint(localChildPosition)
             currentTail = center?.inverseTransformPoint(worldChildPosition) ?? worldChildPosition
@@ -64,7 +46,7 @@ class VRMSpringBone: GKEntity {
             transform.parent?.worldOrientation ?? SCNQuaternion.identity
         }
         
-        func update(center: Transform?, stiffnessForce: SCNFloat, dragForce: SCNFloat, external: SCNVector3, colliders: [SphereCollider]) {
+        func update(center: SCNNode?, stiffnessForce: SCNFloat, dragForce: SCNFloat, external: SCNVector3, colliders: [SphereCollider]) {
             let currentTail: SCNVector3 = center?.transformPoint(self.currentTail) ?? self.currentTail
             let prevTail: SCNVector3 = center?.transformPoint(self.prevTail) ?? self.prevTail
             // verlet積分で次の位置を計算
@@ -140,7 +122,7 @@ class VRMSpringBone: GKEntity {
         }
     }
     
-    func setupRecursive(center: Transform, parent: Transform) {
+    func setupRecursive(center: SCNNode, parent: SCNNode) {
         if parent.childNodes.isEmpty {
             let delta: SCNVector3 = parent.worldPosition - parent.parent!.worldPosition
             let childPosition = parent.worldPosition + delta.normalized() * 0.07
@@ -197,22 +179,9 @@ class VRMSpringBone: GKEntity {
     }
 }
 
-//class Time {
-//    static let shared: Time = .init()
-//    private var lastUpdateTime: TimeInterval = 0
-//    func update(at time: TimeInterval) {
-//        if lastUpdateTime == 0 {
-//            lastUpdateTime = time
-//        }
-//        let deltaTime: TimeInterval = time - lastUpdateTime
-//        self.deltaTime = deltaTime
-//        self.lastUpdateTime = time
-//    }
-//    private(set) var deltaTime: TimeInterval = 0
-//}
 
 class MonoBehaviour {
-    var transform: Transform!
+    var transform: SCNNode!
 }
 
 class VRMSpringBoneColliderGroup: MonoBehaviour {
@@ -241,12 +210,12 @@ extension SCNMatrix4 {
     }
 }
 
-extension Transform {
+extension SCNNode {
     
     // http://light11.hatenadiary.com/entry/2019/03/09/182229
     // https://github.com/n-yoda/unity-transform/blob/master/Assets/TransformMatrix/TransformMatrix.cs
     var localToWorldMatrix: SCNMatrix4 {
-        Transform.localToParent(transform: parent!) * Transform.localToParent(transform: self)
+        SCNNode.localToParent(transform: parent!) * SCNNode.localToParent(transform: self)
     }
     
     //https://github.com/michidk/BrokenEngine/blob/master/BrokenEngine/GameObject.cs#L99
@@ -275,8 +244,8 @@ extension Transform {
 
 
 
-extension Transform {
-    static func localToParent(transform: Transform) -> SCNMatrix4 {
+extension SCNNode {
+    static func localToParent(transform: SCNNode) -> SCNMatrix4 {
         trs(trans: transform.position, euler: transform.eulerAngles, scale: transform.scale)
     }
     
