@@ -10,6 +10,7 @@ import UIKit
 import SceneKit
 import VRMKit
 import VRMSceneKit
+import GameKit
 
 class ViewController: UIViewController {
 
@@ -22,7 +23,9 @@ class ViewController: UIViewController {
         }
     }
     
-    var bs: [VRMSpringBone] = []
+    let gkScene: GKScene = .init()
+    var lastUpdateTime = TimeInterval()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -54,7 +57,7 @@ class ViewController: UIViewController {
                 springBone.gravityPower = SCNFloat(boneGroup.gravityPower)
                 springBone.stiffnessForce = SCNFloat(boneGroup.stiffiness)
                 springBone.awake()
-                bs.append(springBone)
+                gkScene.addEntity(springBone)
             }
             
             node.runAction(SCNAction.repeatForever(SCNAction.sequence([
@@ -94,9 +97,11 @@ class ViewController: UIViewController {
 
 extension ViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        Time.shared.update(at: time)
-        print(Time.shared.deltaTime)
-        bs.forEach({ $0.lateUpdate() })
-//        print(bs.first?.center.node.worldPosition)
+        if lastUpdateTime == 0 {
+            lastUpdateTime = time
+        }
+        let deltaTime: TimeInterval = time - lastUpdateTime
+        lastUpdateTime = time
+        gkScene.entities.forEach({ $0.update(deltaTime: deltaTime) })
     }
 }

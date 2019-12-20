@@ -7,6 +7,7 @@
 //
 
 import SceneKit
+import GameKit
 
 class Transform: Hashable {
     let node: SCNNode
@@ -24,7 +25,7 @@ class Transform: Hashable {
     }
 }
 
-class VRMSpringBone {
+class VRMSpringBone: GKEntity {
     public let comment: String = ""
     public var stiffnessForce: SCNFloat = 1.0
     public var gravityPower: SCNFloat = 0.0
@@ -170,7 +171,8 @@ class VRMSpringBone {
     
     var colliderList: [SphereCollider] = []
     
-    func lateUpdate() {
+    override func update(deltaTime seconds: TimeInterval) {
+        super.update(deltaTime: seconds)
         if verlet.isEmpty {
             if rootBones.isEmpty {
                 return
@@ -188,8 +190,8 @@ class VRMSpringBone {
                 }
             }
         }
-        let stiffness = stiffnessForce * SCNFloat(Time.shared.deltaTime)
-        let external = gravityDir * (gravityPower * SCNFloat(Time.shared.deltaTime))
+        let stiffness = stiffnessForce * SCNFloat(seconds)
+        let external = gravityDir * (gravityPower * SCNFloat(seconds))
         for verlet in verlet {
             verlet.radius = hitRadius
             verlet.update(center: center,
@@ -201,19 +203,19 @@ class VRMSpringBone {
     }
 }
 
-class Time {
-    static let shared: Time = .init()
-    private var lastUpdateTime: TimeInterval = 0
-    func update(at time: TimeInterval) {
-        if lastUpdateTime == 0 {
-            lastUpdateTime = time
-        }
-        let deltaTime: TimeInterval = time - lastUpdateTime
-        self.deltaTime = deltaTime
-        self.lastUpdateTime = time
-    }
-    private(set) var deltaTime: TimeInterval = 0
-}
+//class Time {
+//    static let shared: Time = .init()
+//    private var lastUpdateTime: TimeInterval = 0
+//    func update(at time: TimeInterval) {
+//        if lastUpdateTime == 0 {
+//            lastUpdateTime = time
+//        }
+//        let deltaTime: TimeInterval = time - lastUpdateTime
+//        self.deltaTime = deltaTime
+//        self.lastUpdateTime = time
+//    }
+//    private(set) var deltaTime: TimeInterval = 0
+//}
 
 class MonoBehaviour {
     var transform: Transform!
