@@ -90,6 +90,7 @@
 		37DD503723AD515E00A4CEFF /* SCNVector3+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */; };
 		37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */; };
 		37DD503B23AD57EF00A4CEFF /* SCNNode+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */; };
+		37DD503D23AD63A800A4CEFF /* GLK2SCN.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503C23AD63A800A4CEFF /* GLK2SCN.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -224,6 +225,7 @@
 		37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+.swift"; sourceTree = "<group>"; };
 		37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBone.swift; sourceTree = "<group>"; };
 		37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNNode+.swift"; sourceTree = "<group>"; };
+		37DD503C23AD63A800A4CEFF /* GLK2SCN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GLK2SCN.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -369,6 +371,7 @@
 				245725FA21481FF9003AA5D7 /* GLTF+.swift */,
 				37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */,
 				37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */,
+				37DD503C23AD63A800A4CEFF /* GLK2SCN.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -718,6 +721,7 @@
 				245725CE2146F2B4003AA5D7 /* SceneKit+.swift in Sources */,
 				245725C82146F240003AA5D7 /* SCNNode+GLTF.swift in Sources */,
 				247DCF3422108FE300E4C87F /* Humanoid.swift in Sources */,
+				37DD503D23AD63A800A4CEFF /* GLK2SCN.swift in Sources */,
 				247DCEE4220FF95D00E4C87F /* BlendShape.swift in Sources */,
 				245725BE2146F1BB003AA5D7 /* SCNMaterialProperty+GLTF.swift in Sources */,
 				245725B22146F0F2003AA5D7 /* SceneData.swift in Sources */,

@@ -55,11 +55,11 @@ extension SCNVector3 {
     }
     
     var magnitude: SCNFloat {
-        SCNFloat(simd.length(self.toSimd()))
+        SCNFloat(simd.length(self.toSimd))
     }
     
     var magnitudeSquared: SCNFloat {
-        SCNFloat(simd.length_squared(self.toSimd()))
+        SCNFloat(simd.length_squared(self.toSimd))
     }
 }
 
@@ -76,7 +76,7 @@ func normal(_ v0: SCNVector3, _ v1: SCNVector3, _ v2: SCNVector3) -> SCNVector3 
 }
 
 func dot(_ left: SCNVector3, _ right: SCNVector3) -> SCNFloat {
-    SCNFloat(simd.dot(left.toSimd(), right.toSimd()))
+    SCNFloat(simd.dot(left.toSimd, right.toSimd))
 }
 
 extension SCNMaterial {
@@ -117,19 +117,26 @@ extension SCNMatrix4 {
     var inverted: SCNMatrix4 {
         SCNMatrix4Invert(self)
     }
+    
+    func scaled(_ scale: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4Scale(self, scale.x, scale.y, scale.z)
+    }
+    
+    func translated(_ translation: SCNVector3) -> SCNMatrix4 {
+        SCNMatrix4Translate(self, translation.x, translation.y, translation.z)
+    }
 }
 
 extension SCNQuaternion {
-    static let identity: SCNQuaternion = GLKQuaternionIdentity.toSCN()
-    static let identityUpVector:SCNVector3 = SCNVector3(0, 1, 0)
+    static let identity: SCNQuaternion = SCNQuaternion(0, 0, 0, 1)
     
-    init(from: SCNVector3, to: SCNVector3, opposing180Axis:SCNVector3 = identityUpVector) {
+    init(from: SCNVector3, to: SCNVector3) {
         let fromNormal = from.normalized, toNormal = to.normalized
         let dotProduct = dot(fromNormal, toNormal)
         if dotProduct >= 1.0 {
-            self = GLKQuaternionIdentity.toSCN()
+            self = SCNQuaternion.identity
         } else if dotProduct < (-1.0 + SCNFloat.leastNormalMagnitude) {
-            self = GLKQuaternionMakeWithAngleAndVector3Axis(Float.pi, opposing180Axis.toGLK()).toSCN()
+            self = GLKQuaternionMakeWithAngleAndVector3Axis(Float.pi, .init(v: (0, 1, 0))).toSCN
         } else {
             let s = sqrt((1.0 + dotProduct) * 2.0)
             let xyz = cross(fromNormal, toNormal) / s
@@ -138,127 +145,16 @@ extension SCNQuaternion {
     }
     
     static func * (_ left: SCNQuaternion, _ right: SCNQuaternion) -> SCNQuaternion {
-        GLKQuaternionMultiply(left.toGLK(), right.toGLK()).toSCN()
+        GLKQuaternionMultiply(left.toGLK, right.toGLK).toSCN
     }
     
     static func * (_ left: SCNQuaternion, _ right: SCNVector3) -> SCNVector3 {
-        GLKQuaternionRotateVector3(left.toGLK(), right.toGLK()).toSCN()
+        GLKQuaternionRotateVector3(left.toGLK, right.toGLK).toSCN
     }
     
     mutating func normalize() {
-        self = GLKQuaternionNormalize(self.toGLK()).toSCN()
+        self = GLKQuaternionNormalize(self.toGLK).toSCN
     }
 }
 
 extension String: Error {}
-
-
-
-
-
-
-
-
-
-
-
-
-// SCNMathExtensions
-// @author: Slipp Douglas Thompson
-// @license: Public Domain per The Unlicense.  See accompanying LICENSE file or <http://unlicense.org/>.
-
-import SceneKit
-import simd
-
-
-
-// MARK: Type Conversions
-
-extension SCNVector3 {
-    public func toSimd() -> SIMD3<Float> {
-        SIMD3<Float>(self)
-    }
-    public func toGLK() -> GLKVector3 {
-        SCNVector3ToGLKVector3(self)
-    }
-}
-extension SIMD3 where Scalar == Float {
-    public func toSCN() -> SCNVector3 {
-        SCNVector3(self)
-    }
-}
-
-extension SIMD3 where Scalar == Double {
-    public func toSCN() -> SCNVector3 {
-        SCNVector3(self)
-    }
-}
-
-extension GLKVector3 {
-    public func toSCN() -> SCNVector3 {
-        SCNVector3FromGLKVector3(self)
-    }
-}
-
-extension SCNQuaternion {
-    public var q:(Float,Float,Float,Float) {
-        return (Float(self.x), Float(self.y), Float(self.z), Float(self.w))
-    }
-    public init(q:(Float,Float,Float,Float)) {
-        self.init(x: SCNFloat(q.0), y: SCNFloat(q.1), z: SCNFloat(q.2), w: SCNFloat(q.3))
-    }
-    
-    public func toGLK() -> GLKQuaternion {
-        return GLKQuaternion(q: self.q)
-    }
-}
-extension GLKQuaternion {
-    public func toSCN() -> SCNQuaternion {
-        return SCNQuaternion(q: self.q)
-    }
-}
-
-extension SCNMatrix4 {
-    public func toSimd() -> float4x4 {
-        float4x4(self)
-    }
-    public func toGLK() -> GLKMatrix4 {
-        SCNMatrix4ToGLKMatrix4(self)
-    }
-}
-extension float4x4 {
-    public func toSCN() -> SCNMatrix4 {
-        SCNMatrix4(self)
-    }
-}
-extension GLKMatrix4 {
-    public func toSCN() -> SCNMatrix4 {
-        SCNMatrix4FromGLKMatrix4(self)
-    }
-}
-
-
-
-
-extension SCNMatrix4 {
-    
-    // MARK: Translate
-    
-    public func translated(_ translation:SCNVector3) -> SCNMatrix4 {
-        return SCNMatrix4Translate(self, translation.x, translation.y, translation.z)
-    }
-    public mutating func translate(_ translation:SCNVector3) {
-        self = self.translated(translation)
-    }
-    
-    // MARK: Scale
-    
-    public func scaled(_ scale:SCNVector3) -> SCNMatrix4 {
-        return SCNMatrix4Scale(self, scale.x, scale.y, scale.z)
-    }
-    public mutating func scale(_ scale:SCNVector3) {
-        self = self.scaled(scale)
-    }
-}
-
-
