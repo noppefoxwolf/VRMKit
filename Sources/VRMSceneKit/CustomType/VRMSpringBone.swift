@@ -8,8 +8,10 @@
 
 import SceneKit
 import GameKit
+@testable import VRMKit
+@testable import VRMSceneKit
 
-class VRMSpringBone: GKEntity {
+final class VRMSpringBone: GKEntity {
     public let comment: String = ""
     public var stiffnessForce: SCNFloat = 1.0
     public var gravityPower: SCNFloat = 0.0
@@ -21,7 +23,7 @@ class VRMSpringBone: GKEntity {
     public let hitRadius: SCNFloat = 0.02
     public var colliderGroups: [VRMSpringBoneColliderGroup] = []
     
-    class VRMSpringBoneLogic {
+    class SpringBoneLogic {
         private let transform: SCNNode
         public var head: SCNNode { transform }
         public var tail: SCNVector3 { transform.localToWorldMatrix.multiplyPoint(boneAxis * length) }
@@ -38,7 +40,7 @@ class VRMSpringBone: GKEntity {
             currentTail = center?.inverseTransformPoint(worldChildPosition) ?? worldChildPosition
             prevTail = currentTail
             localRotation = transform.orientation
-            boneAxis = localChildPosition.normalized()
+            boneAxis = localChildPosition.normalized
             length = localChildPosition.magnitude()
         }
         
@@ -56,7 +58,7 @@ class VRMSpringBone: GKEntity {
                 + external // 外力による移動量
             
             // 長さをboneLengthに強制
-            nextTail = transform.worldPosition + (nextTail - transform.worldPosition).normalized() * length
+            nextTail = transform.worldPosition + (nextTail - transform.worldPosition).normalized * length
             
             // Collisionで移動
             nextTail = collision(colliders, nextTail: nextTail)
@@ -79,17 +81,17 @@ class VRMSpringBone: GKEntity {
                 let r = radius + collider.radius
                 if (nextTail - collider.position).magnitudeSquared() <= (r * r) {
                     // ヒット。Colliderの半径方向に押し出す
-                    let normal = (nextTail - collider.position).normalized()
+                    let normal = (nextTail - collider.position).normalized
                     let posFromCollider = collider.position + normal * (radius + collider.radius)
                     // 長さをboneLengthに強制
-                    nextTail = transform.worldPosition + (posFromCollider - transform.worldPosition).normalized() * length
+                    nextTail = transform.worldPosition + (posFromCollider - transform.worldPosition).normalized * length
                 }
             }
             return nextTail
         }
     }
     
-    var verlet: [VRMSpringBoneLogic] = []
+    var verlet: [SpringBoneLogic] = []
     
     func awake() {
         setup()
@@ -125,13 +127,13 @@ class VRMSpringBone: GKEntity {
     func setupRecursive(center: SCNNode, parent: SCNNode) {
         if parent.childNodes.isEmpty {
             let delta: SCNVector3 = parent.worldPosition - parent.parent!.worldPosition
-            let childPosition = parent.worldPosition + delta.normalized() * 0.07
-            verlet.append(VRMSpringBone.VRMSpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix.multiplyPoint(childPosition)))
+            let childPosition = parent.worldPosition + delta.normalized * 0.07
+            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix.multiplyPoint(childPosition)))
         } else {
             let firstChild = parent.childNodes.first
             let localPosition = firstChild!.position
             let scale = firstChild!.scale
-            verlet.append(VRMSpringBone.VRMSpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z)))
+            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z)))
         }
         
         //http://narudesign.com/devlog/unity-child-object-only/
@@ -157,11 +159,11 @@ class VRMSpringBone: GKEntity {
         }
         colliderList = []
         if !colliderGroups.isEmpty {
-            for group in colliderGroups {
-                for collider in group.colliders {
+            for colliderGroup in colliderGroups {
+                for collider in colliderGroup.colliders {
                     colliderList.append(SphereCollider(
-                        position: group.transform.transformPoint(collider.offset),
-                        radius: collider.radius
+                        position: colliderGroup.node.transformPoint(collider.offset),
+                        radius: SCNFloat(collider.radius)
                     ))
                 }
             }
@@ -181,13 +183,3 @@ class VRMSpringBone: GKEntity {
 
 
 
-struct VRMSpringBoneColliderGroup {
-    let transform: SCNNode
-    
-    class SphereCollider {
-        let offset: SCNVector3 = .init() //TODO?
-        let radius: SCNFloat = 0.1
-    }
-    
-    var colliders: [SphereCollider] = [SphereCollider()]
-}

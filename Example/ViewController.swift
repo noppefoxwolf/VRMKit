@@ -8,8 +8,8 @@
 
 import UIKit
 import SceneKit
-import VRMKit
-import VRMSceneKit
+@testable import VRMKit
+@testable import VRMSceneKit
 import GameKit
 
 class ViewController: UIViewController {
@@ -36,15 +36,15 @@ class ViewController: UIViewController {
             scnView.scene = scene
             scnView.delegate = self
             let node = scene.vrmNode
-//            node.setBlendShape(value: 1.0, for: .custom("><"))
-//            node.humanoid.node(for: .neck)?.eulerAngles = SCNVector3(0, 0, 20 * CGFloat.pi / 180)
-//            node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
-//            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+            node.setBlendShape(value: 1.0, for: .custom("><"))
+            node.humanoid.node(for: .neck)?.eulerAngles = SCNVector3(0, 0, 20 * CGFloat.pi / 180)
+            node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+            node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
             
             var nodes: [SCNNode] = []
             
-            
-            for boneGroup in node.vrm.secondaryAnimation.boneGroups {
+            let secondaryAnimation = node.vrm.secondaryAnimation
+            for boneGroup in secondaryAnimation.boneGroups {
                 let springBone: VRMSpringBone = VRMSpringBone()
                 for index in boneGroup.bones {
                     let node = try! loader.node(withNodeIndex: index)
@@ -57,26 +57,11 @@ class ViewController: UIViewController {
                 springBone.gravityDir = SCNVector3(boneGroup.gravityDir.x, boneGroup.gravityDir.y, boneGroup.gravityDir.z)
                 springBone.gravityPower = SCNFloat(boneGroup.gravityPower)
                 springBone.stiffnessForce = SCNFloat(boneGroup.stiffiness)
-                springBone.colliderGroups = boneGroup.colliderGroups.map({ try! loader.node(withNodeIndex: $0) }).map({ VRMSpringBoneColliderGroup(transform: $0) })
-                for i in boneGroup.colliderGroups {
-                    print(node.vrm.secondaryAnimation.colliderGroups[i].node)
-                    print(node.vrm.secondaryAnimation.colliderGroups[i].colliders.first?.offset)
-                    print(node.vrm.secondaryAnimation.colliderGroups[i].colliders.first?.radius)
-                }
-                
+                springBone.colliderGroups = boneGroup.colliderGroups.map({ secondaryAnimation.colliderGroups[$0] })
+                    .map({ try! VRMSpringBoneColliderGroup(colliderGroup: $0, loader: loader) })
                 springBone.awake()
                 gkScene.addEntity(springBone)
             }
-            
-//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-//                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 1.0),
-//                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 1.0),
-//            ])))
-
-//            node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-//                SCNAction.rotateBy(x: 0, y: -0.5, z: 0, duration: 1.0),
-//                SCNAction.rotateBy(x: 0, y: 0.5, z: 0, duration: 1.0),
-//            ])))
 
             node.runAction(SCNAction.repeatForever(SCNAction.sequence([
                 SCNAction.move(by: SCNVector3(0, 1, 0), duration: 0.5),

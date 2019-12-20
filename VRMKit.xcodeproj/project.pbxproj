@@ -86,8 +86,9 @@
 		24CF7FE02144306A007A5C6C /* InternalFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CF7FDF2144306A007A5C6C /* InternalFunction.swift */; };
 		24CF7FE221443087007A5C6C /* AnyCodingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CF7FE121443087007A5C6C /* AnyCodingKey.swift */; };
 		24EE14952215CE1F00A14305 /* VRMExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EE14942215CE1F00A14305 /* VRMExtension.swift */; };
-		37DD503023AC05B900A4CEFF /* SCNMathExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD502A23ABF4B200A4CEFF /* SCNMathExtensions.swift */; };
-		37DD503123AC05B900A4CEFF /* VRMSpringBone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD502B23ABF4B200A4CEFF /* VRMSpringBone.swift */; };
+		37DD503623AD513200A4CEFF /* VRMSpringBoneColliderGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */; };
+		37DD503723AD515E00A4CEFF /* SCNVector3+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */; };
+		37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -218,8 +219,9 @@
 		24CF7FE121443087007A5C6C /* AnyCodingKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodingKey.swift; sourceTree = "<group>"; };
 		24CF7FEB21451253007A5C6C /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		24EE14942215CE1F00A14305 /* VRMExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMExtension.swift; sourceTree = "<group>"; };
-		37DD502A23ABF4B200A4CEFF /* SCNMathExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SCNMathExtensions.swift; sourceTree = "<group>"; };
-		37DD502B23ABF4B200A4CEFF /* VRMSpringBone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VRMSpringBone.swift; sourceTree = "<group>"; };
+		37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBoneColliderGroup.swift; sourceTree = "<group>"; };
+		37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+.swift"; sourceTree = "<group>"; };
+		37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBone.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -328,6 +330,8 @@
 			children = (
 				247DCF50221160E600E4C87F /* VRMScene.swift */,
 				247DCF4E22115FA000E4C87F /* VRMNode.swift */,
+				37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */,
+				37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */,
 				247DCEE3220FF95D00E4C87F /* BlendShape.swift */,
 				247DCF3322108FE300E4C87F /* Humanoid.swift */,
 			);
@@ -361,6 +365,7 @@
 				245725D12146F323003AA5D7 /* Collection+.swift */,
 				245725F821481886003AA5D7 /* VRMError+.swift */,
 				245725FA21481FF9003AA5D7 /* GLTF+.swift */,
+				37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -368,8 +373,6 @@
 		245725D82146F47A003AA5D7 /* Example */ = {
 			isa = PBXGroup;
 			children = (
-				37DD502A23ABF4B200A4CEFF /* SCNMathExtensions.swift */,
-				37DD502B23ABF4B200A4CEFF /* VRMSpringBone.swift */,
 				245725D92146F47A003AA5D7 /* AppDelegate.swift */,
 				245725DB2146F47A003AA5D7 /* ViewController.swift */,
 				245725DD2146F47B003AA5D7 /* Main.storyboard */,
@@ -700,12 +703,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37DD503623AD513200A4CEFF /* VRMSpringBoneColliderGroup.swift in Sources */,
 				245725C42146F207003AA5D7 /* SCNGeometryElement+GLTF.swift in Sources */,
 				245725BA2146F185003AA5D7 /* SCNCamera+GLTF.swift in Sources */,
 				245725FB21481FF9003AA5D7 /* GLTF+.swift in Sources */,
 				245725B82146F165003AA5D7 /* GLTF2SCN.swift in Sources */,
 				248D3AA6220EBAE200D50019 /* SCNMorpher+GLTF.swift in Sources */,
 				245725F921481887003AA5D7 /* VRMError+.swift in Sources */,
+				37DD503723AD515E00A4CEFF /* SCNVector3+.swift in Sources */,
 				245725D22146F323003AA5D7 /* Collection+.swift in Sources */,
 				245725CE2146F2B4003AA5D7 /* SceneKit+.swift in Sources */,
 				245725C82146F240003AA5D7 /* SCNNode+GLTF.swift in Sources */,
@@ -724,6 +729,7 @@
 				247DCF382210A1F100E4C87F /* SCNSkinner+GLTF.swift in Sources */,
 				245725BC2146F19D003AA5D7 /* UIImage+GLTF.swift in Sources */,
 				245725C62146F224003AA5D7 /* SCNGeometrySource+GLTF.swift in Sources */,
+				37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -739,9 +745,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37DD503023AC05B900A4CEFF /* SCNMathExtensions.swift in Sources */,
 				245725DC2146F47A003AA5D7 /* ViewController.swift in Sources */,
-				37DD503123AC05B900A4CEFF /* VRMSpringBone.swift in Sources */,
 				245725DA2146F47A003AA5D7 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
