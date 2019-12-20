@@ -49,9 +49,9 @@ class ViewController: UIViewController {
                     let node = try! loader.node(withNodeIndex: index)
                     nodes.append(node)
                 }
-                springBone.rootBones = nodes.map(Transform.init)
+                springBone.rootBones = nodes
                 //boneGroup.center-1は無指定でroot選ぶ
-                springBone.center = Transform(try! loader.node(withNodeIndex: boneGroup.bones[0]))
+                springBone.center = try! loader.node(withNodeIndex: boneGroup.bones[0])
                 springBone.dragForce = SCNFloat(boneGroup.dragForce)
                 springBone.gravityDir = SCNVector3(boneGroup.gravityDir.x, boneGroup.gravityDir.y, boneGroup.gravityDir.z)
                 springBone.gravityPower = SCNFloat(boneGroup.gravityPower)

@@ -9,21 +9,23 @@
 import SceneKit
 import GameKit
 
-class Transform: Hashable {
-    let node: SCNNode
-    
-    init(_ node: SCNNode) {
-        self.node = node
-    }
-    
-    static func == (lhs: Transform, rhs: Transform) -> Bool {
-        lhs.hashValue == rhs.hashValue
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(node)
-    }
-}
+typealias Transform = SCNNode
+//
+//class Transform: Hashable {
+//    let node: SCNNode
+//
+//    init(_ node: SCNNode) {
+//        self.node = node
+//    }
+//
+//    static func == (lhs: Transform, rhs: Transform) -> Bool {
+//        lhs.hashValue == rhs.hashValue
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        hasher.combine(node)
+//    }
+//}
 
 class VRMSpringBone: GKEntity {
     public let comment: String = ""
@@ -53,13 +55,13 @@ class VRMSpringBone: GKEntity {
             let worldChildPosition = transform.transformPoint(localChildPosition)
             currentTail = center?.inverseTransformPoint(worldChildPosition) ?? worldChildPosition
             prevTail = currentTail
-            localRotation = transform.localRotation
+            localRotation = transform.orientation
             boneAxis = localChildPosition.normalized()
             length = localChildPosition.magnitude()
         }
         
         var parentRotation: SCNQuaternion {
-            transform.parent?.rotation ?? SCNQuaternion.identity
+            transform.parent?.worldOrientation ?? SCNQuaternion.identity
         }
         
         func update(center: Transform?, stiffnessForce: SCNFloat, dragForce: SCNFloat, external: SCNVector3, colliders: [SphereCollider]) {
@@ -72,7 +74,7 @@ class VRMSpringBone: GKEntity {
                 + external // 外力による移動量
             
             // 長さをboneLengthに強制
-            nextTail = transform.position + (nextTail - transform.position).normalized() * length
+            nextTail = transform.worldPosition + (nextTail - transform.worldPosition).normalized() * length
             
             // Collisionで移動
             nextTail = collision(colliders, nextTail: nextTail)
@@ -81,12 +83,12 @@ class VRMSpringBone: GKEntity {
             self.currentTail = center?.inverseTransformPoint(nextTail) ?? nextTail
             
             // 回転を適用
-            head.rotation = applyRotation(nextTail)
+            head.worldOrientation = applyRotation(nextTail)
         }
         
         func applyRotation(_ nextTail: SCNVector3) -> SCNQuaternion {
             let rotation = parentRotation * localRotation
-            return SCNQuaternion(from: rotation * boneAxis, to: nextTail - transform.position) * rotation
+            return SCNQuaternion(from: rotation * boneAxis, to: nextTail - transform.worldPosition) * rotation
         }
         
         func collision(_ colliders: [SphereCollider], nextTail: SCNVector3) -> SCNVector3 {
@@ -98,7 +100,7 @@ class VRMSpringBone: GKEntity {
                     let normal = (nextTail - collider.position).normalized()
                     let posFromCollider = collider.position + normal * (radius + collider.radius)
                     // 長さをboneLengthに強制
-                    nextTail = transform.position + (posFromCollider - transform.position).normalized() * length
+                    nextTail = transform.worldPosition + (posFromCollider - transform.worldPosition).normalized() * length
                 }
             }
             return nextTail
@@ -117,15 +119,15 @@ class VRMSpringBone: GKEntity {
                 initialLocalRotationMap = [:]
             } else {
                 for kv in initialLocalRotationMap {
-                    kv.key.localRotation = kv.value
+                    kv.key.orientation = kv.value
                 }
                 initialLocalRotationMap = [:]
             }
             verlet = []
             
             for go in rootBones {
-                for x in go.transform.traverse {
-                    initialLocalRotationMap[x] = x.localRotation
+                for x in go.traverse {
+                    initialLocalRotationMap[x] = x.orientation
                 }
                 setupRecursive(center: center, parent: go)
             }
@@ -134,32 +136,24 @@ class VRMSpringBone: GKEntity {
     
     func setLocalRotationsIdentity() {
         for verlet in verlet {
-            verlet.head.localRotation = SCNQuaternion.identity
+            verlet.head.orientation = SCNQuaternion.identity
         }
-    }
-    
-    static func getChildren(parent: Transform) -> [Transform] {
-        var res: [Transform] = []
-        for i in 0..<parent.childCount {
-            res.append(parent.getChild(i))
-        }
-        return res
     }
     
     func setupRecursive(center: Transform, parent: Transform) {
-        if parent.childCount == 0 {
-            let delta: SCNVector3 = parent.position - parent.parent!.position
-            let childPosition = parent.position + delta.normalized() * 0.07
+        if parent.childNodes.isEmpty {
+            let delta: SCNVector3 = parent.worldPosition - parent.parent!.worldPosition
+            let childPosition = parent.worldPosition + delta.normalized() * 0.07
             verlet.append(VRMSpringBone.VRMSpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix.multiplyPoint(childPosition)))
         } else {
-            let firstChild = VRMSpringBone.getChildren(parent: parent).first
-            let localPosition = firstChild!.localPosition
-            let scale = firstChild!.lossyScale
+            let firstChild = parent.childNodes.first
+            let localPosition = firstChild!.position
+            let scale = firstChild!.scale
             verlet.append(VRMSpringBone.VRMSpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z)))
         }
         
         //http://narudesign.com/devlog/unity-child-object-only/
-        for child in parent.children {
+        parent.childNodes.forEach { (child) in
             setupRecursive(center: center, parent: child)
         }
     }
@@ -248,9 +242,6 @@ extension SCNMatrix4 {
 }
 
 extension Transform {
-    var position: SCNVector3 {
-        node.worldPosition
-    }
     
     // http://light11.hatenadiary.com/entry/2019/03/09/182229
     // https://github.com/n-yoda/unity-transform/blob/master/Assets/TransformMatrix/TransformMatrix.cs
@@ -275,56 +266,8 @@ extension Transform {
 //        transformPoint(point).inverted()
     }
     
-    var localRotation: SCNQuaternion {
-        get { node.orientation }
-        set { node.orientation = newValue }
-    }
-    
-    var parent: Transform? { //ここの方怪しい
-        guard let parent = node.parent else { return nil }
-        return Transform(parent)
-    }
-    
-    var rotation: SCNQuaternion {
-        get { node.worldOrientation }
-        set { node.worldOrientation = newValue }
-    }
-    
-    var transform: Transform {
-        self
-    }
-    
-    var traverse: [Transform] {
-        node.childNodes.map(Transform.init)
-    }
-    
-    var childCount: Int {
-        node.childNodes.count
-    }
-    
-    func getChild(_ i: Int) -> Transform {
-        Transform(node.childNodes[i])
-    }
-    
-    var localPosition: SCNVector3 {
-        node.position
-    }
-    
-    // TODO: Worldのscaleを返す
-    var lossyScale: SCNVector3 {
-        node.scale
-    }
-    
-    var children: [Transform] {
-        node.childNodes.map(Transform.init)
-    }
-    
-    var localScale: SCNVector3 {
-        node.scale
-    }
-    
-    var localEulerAngles: SCNVector3 {
-        node.eulerAngles
+    var traverse: [SCNNode] {
+        childNodes
     }
 }
 
@@ -334,7 +277,7 @@ extension Transform {
 
 extension Transform {
     static func localToParent(transform: Transform) -> SCNMatrix4 {
-        trs(trans: transform.localPosition, euler: transform.localEulerAngles, scale: transform.localScale)
+        trs(trans: transform.position, euler: transform.eulerAngles, scale: transform.scale)
     }
     
     static func trs(trans: SCNVector3, euler: SCNVector3, scale: SCNVector3) -> SCNMatrix4 {
