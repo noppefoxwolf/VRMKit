@@ -89,6 +89,7 @@
 		37DD503623AD513200A4CEFF /* VRMSpringBoneColliderGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */; };
 		37DD503723AD515E00A4CEFF /* SCNVector3+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */; };
 		37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */; };
+		37DD503B23AD57EF00A4CEFF /* SCNNode+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -222,6 +223,7 @@
 		37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBoneColliderGroup.swift; sourceTree = "<group>"; };
 		37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+.swift"; sourceTree = "<group>"; };
 		37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBone.swift; sourceTree = "<group>"; };
+		37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNNode+.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -366,6 +368,7 @@
 				245725F821481886003AA5D7 /* VRMError+.swift */,
 				245725FA21481FF9003AA5D7 /* GLTF+.swift */,
 				37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */,
+				37DD503A23AD57EF00A4CEFF /* SCNNode+.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -729,6 +732,7 @@
 				247DCF382210A1F100E4C87F /* SCNSkinner+GLTF.swift in Sources */,
 				245725BC2146F19D003AA5D7 /* UIImage+GLTF.swift in Sources */,
 				245725C62146F224003AA5D7 /* SCNGeometrySource+GLTF.swift in Sources */,
+				37DD503B23AD57EF00A4CEFF /* SCNNode+.swift in Sources */,
 				37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

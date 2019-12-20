@@ -26,7 +26,7 @@ final class VRMSpringBone: GKEntity {
     class SpringBoneLogic {
         private let transform: SCNNode
         public var head: SCNNode { transform }
-        public var tail: SCNVector3 { transform.localToWorldMatrix.multiplyPoint(boneAxis * length) }
+        public var tail: SCNVector3 { transform.localToWorldMatrix * (boneAxis * length) }
         let length: SCNFloat
         var currentTail: SCNVector3!
         var prevTail: SCNVector3!
@@ -41,7 +41,7 @@ final class VRMSpringBone: GKEntity {
             prevTail = currentTail
             localRotation = transform.orientation
             boneAxis = localChildPosition.normalized
-            length = localChildPosition.magnitude()
+            length = localChildPosition.magnitude
         }
         
         var parentRotation: SCNQuaternion {
@@ -79,7 +79,7 @@ final class VRMSpringBone: GKEntity {
             var nextTail = nextTail
             for collider in colliders {
                 let r = radius + collider.radius
-                if (nextTail - collider.position).magnitudeSquared() <= (r * r) {
+                if (nextTail - collider.position).magnitudeSquared <= (r * r) {
                     // ヒット。Colliderの半径方向に押し出す
                     let normal = (nextTail - collider.position).normalized
                     let posFromCollider = collider.position + normal * (radius + collider.radius)
@@ -128,7 +128,7 @@ final class VRMSpringBone: GKEntity {
         if parent.childNodes.isEmpty {
             let delta: SCNVector3 = parent.worldPosition - parent.parent!.worldPosition
             let childPosition = parent.worldPosition + delta.normalized * 0.07
-            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix.multiplyPoint(childPosition)))
+            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix * childPosition))
         } else {
             let firstChild = parent.childNodes.first
             let localPosition = firstChild!.position
