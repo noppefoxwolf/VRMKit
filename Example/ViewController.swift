@@ -8,8 +8,8 @@
 
 import UIKit
 import SceneKit
-@testable import VRMKit
-@testable import VRMSceneKit
+import VRMKit
+import VRMSceneKit
 import GameKit
 
 class ViewController: UIViewController {
