@@ -117,18 +117,6 @@ extension SCNMatrix4 {
     var inverted: SCNMatrix4 {
         SCNMatrix4Invert(self)
     }
-    
-    func rotated(angle: Float, rotate: SCNVector3) -> SCNMatrix4 {
-        SCNMatrix4Rotate(self, angle, rotate.x, rotate.y, rotate.z)
-    }
-    
-    func scaled(_ scale: SCNVector3) -> SCNMatrix4 {
-        SCNMatrix4Scale(self, scale.x, scale.y, scale.z)
-    }
-    
-    func translated(_ translation: SCNVector3) -> SCNMatrix4 {
-        SCNMatrix4Translate(self, translation.x, translation.y, translation.z)
-    }
 }
 
 extension SCNQuaternion {
