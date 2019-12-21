@@ -25,9 +25,9 @@ final class VRMSpringBone {
     public let rootBones: [SCNNode]
     public let hitRadius: SCNFloat
     
-    var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
-    public var colliderGroups: [VRMSpringBoneColliderGroup] = []
-    var verlet: [SpringBoneLogic] = []
+    private var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
+    private var colliderGroups: [VRMSpringBoneColliderGroup] = []
+    private var verlet: [SpringBoneLogic] = []
     private var colliderList: [SphereCollider] = []
     
     init(center: SCNNode,
@@ -71,12 +71,12 @@ final class VRMSpringBone {
         if let firstChildNode = parent.childNodes.first {
             let localPosition = firstChildNode.position
             let scale = firstChildNode.scale
-            let logic = SpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z))
+            let logic = SpringBoneLogic(center: center, node: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z))
             verlet.append(logic)
         } else {
             let delta: SCNVector3 = parent.worldPosition - (parent.parent?.worldPosition ?? SCNVector3())
             let childPosition = parent.worldPosition + delta.normalized * 0.07
-            let logic = SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix * childPosition)
+            let logic = SpringBoneLogic(center: center, node: parent, localChildPosition: parent.worldToLocalMatrix * childPosition)
             verlet.append(logic)
         }
         
@@ -87,7 +87,7 @@ final class VRMSpringBone {
     
     private func setLocalRotationsIdentity() {
         for verlet in verlet {
-            verlet.head.orientation = SCNQuaternion.identity
+            verlet.node.orientation = SCNQuaternion.identity
         }
     }
     
@@ -122,25 +122,23 @@ final class VRMSpringBone {
 
 extension VRMSpringBone {
     class SpringBoneLogic {
-        private let transform: SCNNode
-        fileprivate var head: SCNNode { transform }
-        private var tail: SCNVector3 { transform.localToWorldMatrix * (boneAxis * length) }
+        let node: SCNNode
         private let length: SCNFloat
         private var currentTail: SCNVector3
         private var prevTail: SCNVector3
         private let localRotation: SCNQuaternion
         private let boneAxis: SCNVector3
         private var parentRotation: SCNQuaternion {
-            transform.parent?.worldOrientation ?? SCNQuaternion.identity
+            node.parent?.worldOrientation ?? SCNQuaternion.identity
         }
         var radius: SCNFloat = 0.5
         
-        init(center: SCNNode, transform: SCNNode, localChildPosition: SCNVector3) {
-            self.transform = transform
-            let worldChildPosition = transform.convertPosition(localChildPosition, to: transform)
+        init(center: SCNNode, node: SCNNode, localChildPosition: SCNVector3) {
+            self.node = node
+            let worldChildPosition = node.convertPosition(localChildPosition, to: node)
             currentTail = center.convertPosition(worldChildPosition, from: center)
             prevTail = currentTail
-            localRotation = transform.orientation
+            localRotation = node.orientation
             boneAxis = localChildPosition.normalized
             length = localChildPosition.magnitude
         }
@@ -155,7 +153,7 @@ extension VRMSpringBone {
                 + external // 外力による移動量
             
             // 長さをboneLengthに強制
-            nextTail = transform.worldPosition + (nextTail - transform.worldPosition).normalized * length
+            nextTail = self.node.worldPosition + (nextTail - node.worldPosition).normalized * length
             
             // Collisionで移動
             nextTail = collision(colliders, nextTail: nextTail)
@@ -164,12 +162,12 @@ extension VRMSpringBone {
             self.currentTail = center.convertPosition(nextTail, from: center)
             
             // 回転を適用
-            head.worldOrientation = applyRotation(nextTail)
+            self.node.worldOrientation = applyRotation(nextTail)
         }
         
         private func applyRotation(_ nextTail: SCNVector3) -> SCNQuaternion {
             let rotation = parentRotation * localRotation
-            return SCNQuaternion(from: rotation * boneAxis, to: nextTail - transform.worldPosition) * rotation
+            return SCNQuaternion(from: rotation * boneAxis, to: nextTail - node.worldPosition) * rotation
         }
         
         private func collision(_ colliders: [SphereCollider], nextTail: SCNVector3) -> SCNVector3 {
@@ -181,7 +179,7 @@ extension VRMSpringBone {
                     let normal = (nextTail - collider.position).normalized
                     let posFromCollider = collider.position + normal * (radius + collider.radius)
                     // 長さをboneLengthに強制
-                    nextTail = transform.worldPosition + (posFromCollider - transform.worldPosition).normalized * length
+                    nextTail = node.worldPosition + (posFromCollider - node.worldPosition).normalized * length
                 }
             }
             return nextTail
