@@ -26,7 +26,7 @@ final class VRMSpringBone {
     public let hitRadius: SCNFloat
     
     private var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
-    private var colliderGroups: [VRMSpringBoneColliderGroup] = []
+    private let colliderGroups: [VRMSpringBoneColliderGroup]
     private var verlet: [SpringBoneLogic] = []
     private var colliderList: [SphereCollider] = []
     
@@ -37,7 +37,8 @@ final class VRMSpringBone {
          gravityPower: SCNFloat = 0.0,
          gravityDir: SCNVector3 = .init(0, -1, 0),
          dragForce: SCNFloat = 0.4,
-         hitRadius: SCNFloat = 0.02) {
+         hitRadius: SCNFloat = 0.02,
+         colliderGroups: [VRMSpringBoneColliderGroup] = []) {
         self.center = center
         self.rootBones = rootBones
         self.comment = comment
@@ -46,6 +47,7 @@ final class VRMSpringBone {
         self.gravityDir = gravityDir
         self.dragForce = dragForce
         self.hitRadius = hitRadius
+        self.colliderGroups = colliderGroups
         setup()
     }
     

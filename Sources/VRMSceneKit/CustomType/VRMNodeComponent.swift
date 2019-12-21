@@ -21,6 +21,7 @@ public class VRMNodeComponent: GKSCNNodeComponent {
             let rootBones: [SCNNode] = try boneGroup.bones.compactMap({ try loader.node(withNodeIndex: $0) }).compactMap({ $0 })
             let centerIndex = max(boneGroup.center, boneGroup.bones[0])
             if let centerNode = try? loader.node(withNodeIndex: centerIndex) {
+                let colliderGroups = try secondaryAnimation.colliderGroups.map({ try VRMSpringBoneColliderGroup(colliderGroup: $0, loader: loader) })
                 let springBone = VRMSpringBone(center: centerNode,
                                                rootBones: rootBones,
                                                comment: boneGroup.comment,
@@ -28,7 +29,8 @@ public class VRMNodeComponent: GKSCNNodeComponent {
                                                gravityPower: SCNFloat(boneGroup.gravityPower),
                                                gravityDir: boneGroup.gravityDir.createSCNVector3(),
                                                dragForce: SCNFloat(boneGroup.dragForce),
-                                               hitRadius: SCNFloat(boneGroup.hitRadius))
+                                               hitRadius: SCNFloat(boneGroup.hitRadius),
+                                               colliderGroups: colliderGroups)
                 springBones.append(springBone)
             }
         }
