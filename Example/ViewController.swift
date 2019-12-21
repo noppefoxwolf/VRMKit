@@ -40,37 +40,15 @@ class ViewController: UIViewController {
             node.humanoid.node(for: .neck)?.eulerAngles = SCNVector3(0, 0, 20 * CGFloat.pi / 180)
             node.humanoid.node(for: .leftShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
             node.humanoid.node(for: .rightShoulder)?.eulerAngles = SCNVector3(0, 0, 40 * CGFloat.pi / 180)
+            let component = try loader.loadComponent(vrmNode: node)
+            let entity = GKEntity()
+            entity.addComponent(component)
+            gkScene.addEntity(entity)
             
-            var nodes: [SCNNode] = []
-            
-            let secondaryAnimation = node.vrm.secondaryAnimation
-            for boneGroup in secondaryAnimation.boneGroups {
-                let springBone: VRMSpringBone = VRMSpringBone()
-                for index in boneGroup.bones {
-                    let node = try! loader.node(withNodeIndex: index)
-                    nodes.append(node)
-                }
-                springBone.rootBones = nodes
-                //boneGroup.center-1は無指定でroot選ぶ
-                springBone.center = try! loader.node(withNodeIndex: boneGroup.bones[0])
-                springBone.dragForce = SCNFloat(boneGroup.dragForce)
-                springBone.gravityDir = SCNVector3(boneGroup.gravityDir.x, boneGroup.gravityDir.y, boneGroup.gravityDir.z)
-                springBone.gravityPower = SCNFloat(boneGroup.gravityPower)
-                springBone.stiffnessForce = SCNFloat(boneGroup.stiffiness)
-                springBone.colliderGroups = boneGroup.colliderGroups.map({ secondaryAnimation.colliderGroups[$0] })
-                    .map({ try! VRMSpringBoneColliderGroup(colliderGroup: $0, loader: loader) })
-                springBone.awake()
-                gkScene.addEntity(springBone)
-            }
-
             node.runAction(SCNAction.repeatForever(SCNAction.sequence([
-                SCNAction.move(by: SCNVector3(0, 1, 0), duration: 0.5),
-                SCNAction.move(by: SCNVector3(0, -1, 0), duration: 0.5),
                 SCNAction.rotateBy(x: 0, y: -0.5, z: 0, duration: 0.5),
                 SCNAction.rotateBy(x: 0, y: 0.5, z: 0, duration: 0.5),
             ])))
-
-            
         } catch {
             print(error)
         }

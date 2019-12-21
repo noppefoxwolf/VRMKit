@@ -8,31 +8,126 @@
 
 import SceneKit
 import GameKit
-@testable import VRMKit
-@testable import VRMSceneKit
+import VRMKit
 
-final class VRMSpringBone: GKEntity {
-    public let comment: String = ""
-    public var stiffnessForce: SCNFloat = 1.0
-    public var gravityPower: SCNFloat = 0.0
-    public var gravityDir: SCNVector3 = .init(0, -1, 0)
-    public var dragForce: SCNFloat = 0.4
-    public var center: SCNNode! = nil
-    public var rootBones: [SCNNode] = []
-    var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
-    public let hitRadius: SCNFloat = 0.02
-    public var colliderGroups: [VRMSpringBoneColliderGroup] = []
+final class VRMSpringBone {
+    struct SphereCollider {
+        let position: SCNVector3
+        let radius: SCNFloat
+    }
     
+    public let comment: String?
+    public let stiffnessForce: SCNFloat
+    public let gravityPower: SCNFloat
+    public let gravityDir: SCNVector3
+    public let dragForce: SCNFloat
+    public let center: SCNNode
+    public let rootBones: [SCNNode]
+    public let hitRadius: SCNFloat
+    
+    var initialLocalRotationMap: [SCNNode : SCNQuaternion] = [:]
+    public var colliderGroups: [VRMSpringBoneColliderGroup] = []
+    var verlet: [SpringBoneLogic] = []
+    private var colliderList: [SphereCollider] = []
+    
+    init(center: SCNNode,
+         rootBones: [SCNNode],
+         comment: String? = nil,
+         stiffnessForce: SCNFloat = 1.0,
+         gravityPower: SCNFloat = 0.0,
+         gravityDir: SCNVector3 = .init(0, -1, 0),
+         dragForce: SCNFloat = 0.4,
+         hitRadius: SCNFloat = 0.02) {
+        self.center = center
+        self.rootBones = rootBones
+        self.comment = comment
+        self.stiffnessForce = stiffnessForce
+        self.gravityPower = gravityPower
+        self.gravityDir = gravityDir
+        self.dragForce = dragForce
+        self.hitRadius = hitRadius
+        setup()
+    }
+    
+    private func setup() {
+        guard !rootBones.isEmpty else { return }
+        
+        for kv in initialLocalRotationMap {
+            kv.key.orientation = kv.value
+        }
+        
+        verlet = []
+        
+        initialLocalRotationMap = [:]
+        for boneNode in rootBones {
+            for childNode in boneNode.childNodes {
+                initialLocalRotationMap[childNode] = childNode.orientation
+            }
+            setupRecursive(center: center, parent: boneNode)
+        }
+    }
+    
+    private func setupRecursive(center: SCNNode, parent: SCNNode) {
+        if let firstChildNode = parent.childNodes.first {
+            let localPosition = firstChildNode.position
+            let scale = firstChildNode.scale
+            let logic = SpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z))
+            verlet.append(logic)
+        } else {
+            let delta: SCNVector3 = parent.worldPosition - (parent.parent?.worldPosition ?? SCNVector3())
+            let childPosition = parent.worldPosition + delta.normalized * 0.07
+            let logic = SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix * childPosition)
+            verlet.append(logic)
+        }
+        
+        parent.childNodes.forEach { (child) in
+            setupRecursive(center: center, parent: child)
+        }
+    }
+    
+    func update(deltaTime seconds: TimeInterval) {
+        if verlet.isEmpty {
+            if rootBones.isEmpty {
+                return
+            }
+            setup()
+        }
+        colliderList = []
+        for colliderGroup in colliderGroups {
+            for collider in colliderGroup.colliders {
+                colliderList.append(SphereCollider(
+                    position: colliderGroup.node.transformPoint(collider.offset),
+                    radius: SCNFloat(collider.radius)
+                ))
+            }
+        }
+        let stiffness = stiffnessForce * SCNFloat(seconds)
+        let external = gravityDir * (gravityPower * SCNFloat(seconds))
+        for verlet in verlet {
+            verlet.radius = hitRadius
+            verlet.update(center: center,
+                          stiffnessForce: stiffness,
+                          dragForce: dragForce,
+                          external: external,
+                          colliders: colliderList)
+        }
+    }
+}
+
+extension VRMSpringBone {
     class SpringBoneLogic {
         private let transform: SCNNode
-        public var head: SCNNode { transform }
-        public var tail: SCNVector3 { transform.localToWorldMatrix * (boneAxis * length) }
-        let length: SCNFloat
-        var currentTail: SCNVector3!
-        var prevTail: SCNVector3!
-        public let localRotation: SCNQuaternion!
-        public let boneAxis: SCNVector3!
-        public var radius: SCNFloat = 0.5
+        private var head: SCNNode { transform }
+        private var tail: SCNVector3 { transform.localToWorldMatrix * (boneAxis * length) }
+        private let length: SCNFloat
+        private var currentTail: SCNVector3
+        private var prevTail: SCNVector3
+        private let localRotation: SCNQuaternion
+        private let boneAxis: SCNVector3
+        private var parentRotation: SCNQuaternion {
+            transform.parent?.worldOrientation ?? SCNQuaternion.identity
+        }
+        var radius: SCNFloat = 0.5
         
         init(center: SCNNode?, transform: SCNNode, localChildPosition: SCNVector3) {
             self.transform = transform
@@ -42,10 +137,6 @@ final class VRMSpringBone: GKEntity {
             localRotation = transform.orientation
             boneAxis = localChildPosition.normalized
             length = localChildPosition.magnitude
-        }
-        
-        var parentRotation: SCNQuaternion {
-            transform.parent?.worldOrientation ?? SCNQuaternion.identity
         }
         
         func update(center: SCNNode?, stiffnessForce: SCNFloat, dragForce: SCNFloat, external: SCNVector3, colliders: [SphereCollider]) {
@@ -70,12 +161,12 @@ final class VRMSpringBone: GKEntity {
             head.worldOrientation = applyRotation(nextTail)
         }
         
-        func applyRotation(_ nextTail: SCNVector3) -> SCNQuaternion {
+        private func applyRotation(_ nextTail: SCNVector3) -> SCNQuaternion {
             let rotation = parentRotation * localRotation
             return SCNQuaternion(from: rotation * boneAxis, to: nextTail - transform.worldPosition) * rotation
         }
         
-        func collision(_ colliders: [SphereCollider], nextTail: SCNVector3) -> SCNVector3 {
+        private func collision(_ colliders: [SphereCollider], nextTail: SCNVector3) -> SCNVector3 {
             var nextTail = nextTail
             for collider in colliders {
                 let r = radius + collider.radius
@@ -90,96 +181,4 @@ final class VRMSpringBone: GKEntity {
             return nextTail
         }
     }
-    
-    var verlet: [SpringBoneLogic] = []
-    
-    func awake() {
-        setup()
-    }
-    
-    func setup(_ force: Bool = false) {
-        if !rootBones.isEmpty {
-            if force || initialLocalRotationMap.isEmpty {
-                initialLocalRotationMap = [:]
-            } else {
-                for kv in initialLocalRotationMap {
-                    kv.key.orientation = kv.value
-                }
-                initialLocalRotationMap = [:]
-            }
-            verlet = []
-            
-            for go in rootBones {
-                for x in go.traverse {
-                    initialLocalRotationMap[x] = x.orientation
-                }
-                setupRecursive(center: center, parent: go)
-            }
-        }
-    }
-    
-    func setLocalRotationsIdentity() {
-        for verlet in verlet {
-            verlet.head.orientation = SCNQuaternion.identity
-        }
-    }
-    
-    func setupRecursive(center: SCNNode, parent: SCNNode) {
-        if parent.childNodes.isEmpty {
-            let delta: SCNVector3 = parent.worldPosition - parent.parent!.worldPosition
-            let childPosition = parent.worldPosition + delta.normalized * 0.07
-            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: parent.worldToLocalMatrix * childPosition))
-        } else {
-            let firstChild = parent.childNodes.first
-            let localPosition = firstChild!.position
-            let scale = firstChild!.scale
-            verlet.append(SpringBoneLogic(center: center, transform: parent, localChildPosition: SCNVector3(localPosition.x * scale.x, localPosition.y * scale.y, localPosition.z * scale.z)))
-        }
-        
-        //http://narudesign.com/devlog/unity-child-object-only/
-        parent.childNodes.forEach { (child) in
-            setupRecursive(center: center, parent: child)
-        }
-    }
-    
-    struct SphereCollider {
-        let position: SCNVector3
-        let radius: SCNFloat
-    }
-    
-    private var colliderList: [SphereCollider] = []
-    
-    override func update(deltaTime seconds: TimeInterval) {
-        super.update(deltaTime: seconds)
-        if verlet.isEmpty {
-            if rootBones.isEmpty {
-                return
-            }
-            setup()
-        }
-        colliderList = []
-        if !colliderGroups.isEmpty {
-            for colliderGroup in colliderGroups {
-                for collider in colliderGroup.colliders {
-                    colliderList.append(SphereCollider(
-                        position: colliderGroup.node.transformPoint(collider.offset),
-                        radius: SCNFloat(collider.radius)
-                    ))
-                }
-            }
-        }
-        let stiffness = stiffnessForce * SCNFloat(seconds)
-        let external = gravityDir * (gravityPower * SCNFloat(seconds))
-        for verlet in verlet {
-            verlet.radius = hitRadius
-            verlet.update(center: center,
-                          stiffnessForce: stiffness,
-                          dragForce: dragForce,
-                          external: external,
-                          colliders: colliderList)
-        }
-    }
 }
-
-
-

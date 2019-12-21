@@ -7,10 +7,11 @@
 //
 
 import SceneKit
+import GameKit
 
 open class VRMScene: SCNScene {
     public let vrmNode: VRMNode
-
+    
     init(node: VRMNode) {
         self.vrmNode = node
         super.init()

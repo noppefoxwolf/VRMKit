@@ -12,7 +12,7 @@ import VRMKit
 open class VRMNode: SCNNode {
     public let vrm: VRM
     public let humanoid = Humanoid()
-
+    
     var blendShapeClips: [BlendShapeKey: BlendShapeClip] = [:]
 
     public init(vrm: VRM) {
@@ -76,3 +76,4 @@ open class VRMNode: SCNNode {
         return morpher.weight(forTargetAt: binding.index)
     }
 }
+

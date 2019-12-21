@@ -86,6 +86,7 @@
 		24CF7FE02144306A007A5C6C /* InternalFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CF7FDF2144306A007A5C6C /* InternalFunction.swift */; };
 		24CF7FE221443087007A5C6C /* AnyCodingKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CF7FE121443087007A5C6C /* AnyCodingKey.swift */; };
 		24EE14952215CE1F00A14305 /* VRMExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EE14942215CE1F00A14305 /* VRMExtension.swift */; };
+		375541C023AEC6F700D81B4D /* VRMNodeComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375541BE23AEC6F500D81B4D /* VRMNodeComponent.swift */; };
 		37DD503623AD513200A4CEFF /* VRMSpringBoneColliderGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */; };
 		37DD503723AD515E00A4CEFF /* SCNVector3+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */; };
 		37DD503923AD535E00A4CEFF /* VRMSpringBone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */; };
@@ -221,6 +222,7 @@
 		24CF7FE121443087007A5C6C /* AnyCodingKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodingKey.swift; sourceTree = "<group>"; };
 		24CF7FEB21451253007A5C6C /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		24EE14942215CE1F00A14305 /* VRMExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMExtension.swift; sourceTree = "<group>"; };
+		375541BE23AEC6F500D81B4D /* VRMNodeComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMNodeComponent.swift; sourceTree = "<group>"; };
 		37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBoneColliderGroup.swift; sourceTree = "<group>"; };
 		37DD503423AD4FE700A4CEFF /* SCNVector3+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SCNVector3+.swift"; sourceTree = "<group>"; };
 		37DD503823AD535E00A4CEFF /* VRMSpringBone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VRMSpringBone.swift; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 				37DD503223AD4D3C00A4CEFF /* VRMSpringBoneColliderGroup.swift */,
 				247DCEE3220FF95D00E4C87F /* BlendShape.swift */,
 				247DCF3322108FE300E4C87F /* Humanoid.swift */,
+				375541BE23AEC6F500D81B4D /* VRMNodeComponent.swift */,
 			);
 			path = CustomType;
 			sourceTree = "<group>";
@@ -730,6 +733,7 @@
 				245725CC2146F28B003AA5D7 /* GlobalFunction.swift in Sources */,
 				245725F72146FAC1003AA5D7 /* VRMSceneLoader+convenience.swift in Sources */,
 				245725C02146F1D7003AA5D7 /* SCNMaterial+GLTF.swift in Sources */,
+				375541C023AEC6F700D81B4D /* VRMNodeComponent.swift in Sources */,
 				245725B02146F0BC003AA5D7 /* VRMSceneLoader.swift in Sources */,
 				247DCF4F22115FA000E4C87F /* VRMNode.swift in Sources */,
 				247DCF51221160E600E4C87F /* VRMScene.swift in Sources */,

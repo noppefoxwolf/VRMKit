@@ -44,8 +44,14 @@ open class VRMSceneLoader {
         sceneData.scenes[index] = scnScene
         return scnScene
     }
+    
+    public func loadComponent(vrmNode: VRMNode) throws -> VRMNodeComponent {
+        let component = VRMNodeComponent(node: vrmNode)
+        try component.setUpSpringBones(loader: self)
+        return component
+    }
 
-    public func node(withNodeIndex index: Int) throws -> SCNNode {
+    func node(withNodeIndex index: Int) throws -> SCNNode {
         if let cache = try sceneData.load(\.nodes, index: index) { return cache }
         let gltfNode = try gltf.load(\.nodes, keyName: "nodes")[index]
         let gltfSkins = try? gltf.load(\.skins, keyName: "skins")
