@@ -9,6 +9,7 @@
 import SceneKit
 import GameKit
 
+@available(iOS 11.0, *)
 public class VRMNodeComponent: GKSCNNodeComponent {
     private var springBones: [VRMSpringBone] = []
     

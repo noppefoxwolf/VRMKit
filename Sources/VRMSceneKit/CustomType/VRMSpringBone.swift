@@ -10,6 +10,7 @@ import SceneKit
 import GameKit
 import VRMKit
 
+@available(iOS 11.0, *)
 final class VRMSpringBone {
     struct SphereCollider {
         let position: SCNVector3
@@ -122,6 +123,7 @@ final class VRMSpringBone {
     }
 }
 
+@available(iOS 11.0, *)
 extension VRMSpringBone {
     class SpringBoneLogic {
         let node: SCNNode
