@@ -10,6 +10,10 @@ import SceneKit
 import SpriteKit
 
 extension SCNVector3 {
+    static func sqrMagnitude(_ vector: SCNVector3) -> SCNFloat {
+        vector.x * vector.x + vector.y * vector.y + vector.z * vector.z
+    }
+    
     static func + (_ left: SCNVector3, _ right: SCNVector3) -> SCNVector3 {
         return SCNVector3(left.x + right.x, left.y + right.y, left.z + right.z)
     }
@@ -49,17 +53,9 @@ extension SCNVector3 {
     var normalized: SCNVector3 {
         return self * (1.0 / length)
     }
-
+    
     mutating func normalize() {
         self = normalized
-    }
-    
-    var magnitude: SCNFloat {
-        SCNFloat(simd.length(self.toSimd))
-    }
-    
-    var magnitudeSquared: SCNFloat {
-        SCNFloat(simd.length_squared(self.toSimd))
     }
 }
 
@@ -76,7 +72,7 @@ func normal(_ v0: SCNVector3, _ v1: SCNVector3, _ v2: SCNVector3) -> SCNVector3 
 }
 
 func dot(_ left: SCNVector3, _ right: SCNVector3) -> SCNFloat {
-    SCNFloat(simd.dot(left.toSimd, right.toSimd))
+    left.x * right.x + left.y * right.y + left.z * right.z
 }
 
 extension SCNMaterial {
@@ -100,22 +96,8 @@ extension SCNMatrix4 {
                   m41: v[12], m42: v[13], m43: v[14], m44: v[15])
     }
     
-    static func * (_ left: SCNMatrix4, _ value: SCNVector3) -> SCNVector3 {
-        let vector3: SCNVector3 = SCNVector3(
-            (left.m11 *  value.x +  left.m12 *  value.y +  left.m13 *  value.z) + left.m14,
-            (left.m21 *  value.x +  left.m22 *  value.y +  left.m23 *  value.z) + left.m24,
-            (left.m31 *  value.x +  left.m32 *  value.y +  left.m33 *  value.z) + left.m34
-        )
-        let num: Float = 1.0 / ( ( left.m41 *  value.x +  left.m42 *  value.y +  left.m43 *  value.z) + left.m44)
-        return vector3 * num
-    }
-    
     static func * (_ left: SCNMatrix4, right: SCNMatrix4) -> SCNMatrix4 {
         SCNMatrix4Mult(left, right)
-    }
-
-    var inverted: SCNMatrix4 {
-        SCNMatrix4Invert(self)
     }
 }
 
@@ -128,7 +110,7 @@ extension SCNQuaternion {
         if dotProduct >= 1.0 {
             self = SCNQuaternion.identity
         } else if dotProduct < (-1.0 + SCNFloat.leastNormalMagnitude) {
-            self = GLKQuaternionMakeWithAngleAndVector3Axis(Float.pi, .init(v: (0, 1, 0))).toSCN
+            self = SCNQuaternion(angle: .pi, axis: SCNVector3(0, 1, 0))
         } else {
             let s = sqrt((1.0 + dotProduct) * 2.0)
             let xyz = cross(fromNormal, toNormal) / s
@@ -136,16 +118,50 @@ extension SCNQuaternion {
         }
     }
     
+    init(angle radians: SCNFloat, axis: SCNVector3) {
+        let halfAngle: SCNFloat = radians * 0.5
+        let scale: SCNFloat = SCNFloat(sinf(Float(halfAngle)))
+        self = SCNQuaternion(x: scale * axis.x, y: scale * axis.y, z: scale * axis.z, w: cosf(Float(halfAngle)))
+    }
+    
     static func * (_ left: SCNQuaternion, _ right: SCNQuaternion) -> SCNQuaternion {
-        GLKQuaternionMultiply(left.toGLK, right.toGLK).toSCN
+        SCNQuaternion(
+            left.w * right.x +
+            left.x * right.w +
+            left.y * right.z -
+            left.z * right.y,
+            
+            left.w * right.y +
+            left.y * right.w +
+            left.z * right.x -
+            left.x * right.z,
+        
+            left.w * right.z +
+            left.z * right.w +
+            left.x * right.y -
+            left.y * right.x,
+        
+            left.w * right.w -
+            left.x * right.x -
+            left.y * right.y -
+            left.z * right.z
+        )
     }
     
     static func * (_ left: SCNQuaternion, _ right: SCNVector3) -> SCNVector3 {
-        GLKQuaternionRotateVector3(left.toGLK, right.toGLK).toSCN
+        var rotatedQuaternion: SCNQuaternion = SCNQuaternion(right.x, right.y, right.z, 0.0)
+        rotatedQuaternion = (left * rotatedQuaternion) * left.inverted
+        return SCNVector3Make(rotatedQuaternion.x, rotatedQuaternion.y, rotatedQuaternion.z)
     }
     
-    mutating func normalize() {
-        self = GLKQuaternionNormalize(self.toGLK).toSCN
+    @inlinable var inverted: SCNQuaternion {
+        let scale: SCNFloat = 1.0 / (
+            self.x * self.x +
+            self.y * self.y +
+            self.z * self.z +
+            self.w * self.w
+        )
+        return SCNQuaternion(-self.x * scale, -self.y * scale, -self.z * scale, self.w * scale)
     }
 }
 

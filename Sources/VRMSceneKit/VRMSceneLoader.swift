@@ -39,17 +39,11 @@ open class VRMSceneLoader {
         }
         vrmNode.setUpHumanoid(nodes: sceneData.nodes)
         vrmNode.setUpBlendShapes(meshes: sceneData.meshes)
+        try vrmNode.setUpSpringBones(loader: self)
 
         let scnScene = VRMScene(node: vrmNode)
         sceneData.scenes[index] = scnScene
         return scnScene
-    }
-    
-    @available(iOS 11.0, *)
-    public func loadComponent(vrmNode: VRMNode) throws -> VRMNodeComponent {
-        let component = VRMNodeComponent(node: vrmNode)
-        try component.setUpSpringBones(loader: self)
-        return component
     }
 
     public func loadThumbnail() throws -> UIImage? {
